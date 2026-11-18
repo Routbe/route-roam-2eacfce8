@@ -6,7 +6,11 @@ vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 vi.mock("@tanstack/react-router", () => ({ Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
 import { SocialOnboardingDialog } from "./SocialOnboardingDialog";
 
+// Radix checkbox measures itself; jsdom has no ResizeObserver.
+globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} } as never;
+
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
+
 
 describe("unified social onboarding dialog", () => {
   it("asks the age first, then the passkey, and hands the signed ticket to the passkey ceremony", async () => {
