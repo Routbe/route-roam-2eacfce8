@@ -4,5 +4,5 @@
 ## Sudo Mode
 - Sensitive mutations (merge, vault, key/secret rotation) use requireSudo(label): a signed __Host-sudo_session minted only from a general passkey step-up proof, bound to member and sign-in session, valid exactly 300 s from the passkey verification (src/lib/auth/sudo-rules.ts); database-clock passkey proofs stay in addition. Why: one passkey tap covers a short burst of actions without ever trusting a stretched or transplanted window.
 
-## Social grid on both auth tabs
-- The sign-up tab shows the same provider/passkey grid as sign-in, but providers keep disableSignUp: a social button only signs in an already linked account, and a new address returns `signup_disabled` to /auth/sign-up with a "create with passkey first" message. Why: account creation stays passkey/OPAQUE-only.
+## Social onboarding
+- Providers keep disableSignUp; a Google/GitHub/GitLab callback refused with `signup_disabled` whose provider marks the e-mail verified becomes a signed `so.` ticket (state pending_passkey_setup, HttpOnly __Host- cookie, 10 min; social-onboarding.ts) and redirects to /auth/sign-up?onboard=social, where age then passkey run; the account is created and the provider linked only inside the verified passkey ceremony (finalizeEnrollment). Why: every account has a passkey and an abandoned OAuth hand-off leaves no row.
