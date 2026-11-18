@@ -90,6 +90,8 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
   const [recoveryFiled, setRecoveryFiled] = useState(false);
   const [recoveryToken, setRecoveryToken] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
+  // `?onboard=social`: a new Google/GitHub/GitLab member in pending_passkey_setup (set by the address read below).
+  const [socialOnboard, setSocialOnboard] = useState(false);
   const [dob, setDob] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const minor = isMinorDob(dob);
@@ -169,8 +171,6 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
   /** Session cookie is set server-side: one full load to /auth/continue, which re-checks it and 303s. */
   // `/auth/sign-up?onboard=social`: a new Google/GitHub/GitLab member waits in
   // pending_passkey_setup; read after hydration so the server frame stays the same.
-  // Set by the address read below, before that effect tidies the query string away.
-  const [socialOnboard, setSocialOnboard] = useState(false);
 
   const goToPostAuth = () => {
     redirected.current = true;
