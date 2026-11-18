@@ -79,7 +79,7 @@ function traceContext(request: Request, relativePath?: string) {
  * Redirect for a new social member, or null. Only a `signup_disabled` refusal with a verified
  * provider profile qualifies; everything else (linking errors, stale callbacks) keeps its path.
  */
-async function socialOnboardingHandoff(res: Response, request: Request, profile: import("@/lib/auth/social-onboarding").CapturedSocialProfile | null): Promise<Response | null> {
+export async function socialOnboardingHandoff(res: Response, request: Request, profile: import("@/lib/auth/social-onboarding").CapturedSocialProfile | null): Promise<Response | null> {
   const loc = res.headers.get("location");
   if (!loc || !profile) return null;
   let error: string | null = null;
