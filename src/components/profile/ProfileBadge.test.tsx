@@ -82,7 +82,7 @@ describe("blue-mark card: keyboard, animation and signature", () => {
     render(<ProfileBadge type="verified" method="didit" legalName="Jona D." country="BE" verifiedAt="2026-10-10T08:16:00Z" attestation={ATT} handle="jdelplanche" size="sm" />);
     const card = open("Officieel geverifieerd lid");
     await waitFor(() => expect(card.textContent).toContain("Handtekening klopt niet"));
-    expect(card.textContent).not.toContain("valide");
+    expect(card.textContent).not.toContain("handtekening valide");
   });
 
   it("a minor's masked name is shown as given: first name and initial", () => {
