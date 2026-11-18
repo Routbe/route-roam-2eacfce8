@@ -308,6 +308,8 @@ export function ProfileEditor({ variant = "verified", pageMode = "profile", onPa
   const [legalName, setLegalName] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  /** Bumped on every open so the preview frame reloads the freshly saved page. */
+  const [previewNonce, setPreviewNonce] = useState(0);
   const [query, setQuery] = useState("");
   /** Standaard staat "Soeverein & Fediverse" voor: soevereine tools eerst. */
   const [cat, setCat] = useState<string>("featured");
@@ -2321,7 +2323,7 @@ export function ProfileEditor({ variant = "verified", pageMode = "profile", onPa
             </p>
             <button
               type="button"
-              onClick={() => setPreviewOpen(true)}
+              onClick={() => { setPreviewNonce((n) => n + 1); setPreviewOpen(true); }}
               className="flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-foreground px-4 text-xs font-medium text-background"
             >
               <Eye className="h-3.5 w-3.5" aria-hidden /> {t("studio.editor.preview")}
@@ -2348,8 +2350,13 @@ export function ProfileEditor({ variant = "verified", pageMode = "profile", onPa
             <div data-interface-artwork className="mx-auto w-full max-w-[320px] rounded-[2.6rem] border border-border/70 bg-foreground/90 p-[10px] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55)]">
               <div className="relative overflow-hidden rounded-[2rem] bg-background">
                 <span className="absolute left-1/2 top-2 z-10 h-1.5 w-16 -translate-x-1/2 rounded-full bg-foreground/25" />
-                {pagePreviewSrc ? (
-                  <iframe title={t("studio.editor.preview")} src={pagePreviewSrc} className="aspect-[9/19.5] w-full bg-background" />
+                {editMode === "tip" && (!pagePreviewSrc || !tipEnabled) ? (
+                  <div className="flex aspect-[9/19.5] w-full flex-col items-center justify-center gap-2 p-6 text-center text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">{t("studio.mode.tip")}</p>
+                    <p>{!pagePreviewSrc ? t("studio.tipPreview.verifiedOnly") : t("studio.tipPreview.notLive")}</p>
+                  </div>
+                ) : pagePreviewSrc ? (
+                  <iframe key={previewNonce} title={t("studio.editor.preview")} src={`${pagePreviewSrc}?preview=${previewNonce}`} className="aspect-[9/19.5] w-full bg-background" />
                 ) : (
                 <div className="scrollbar-slim aspect-[9/19.5] overflow-y-auto text-foreground">
                   <ProfileView profile={previewDraft} free={previewFree} publicPath={isWorkspace ? publicPath : undefined} preview />

@@ -2210,5 +2210,7 @@
   "badges.zkNoData": "No name or document data shared.",
   "badges.linkedCardTitle": "Linked to a verified main account",
   "badges.methodLinked": "Real person with a verified main profile",
-  "badges.linkedAnonymous": "Anonymity guaranteed: no name is shown."
+  "badges.linkedAnonymous": "Anonymity guaranteed: no name is shown.",
+  "studio.tipPreview.verifiedOnly": "The support page only exists on your verified main profile.",
+  "studio.tipPreview.notLive": "Your support page is not live yet. Enter a valid IBAN and account holder name, then switch the page on."
 }
