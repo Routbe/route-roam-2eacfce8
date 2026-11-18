@@ -1,12 +1,12 @@
 // @vitest-environment node
 /**
- * db-pending/0292 (under-18 check for the public blue-mark card) on an offline replay of db/.
+ * db/0292 (under-18 check for the public blue-mark card) on an offline replay of db/.
  * Never touches Neon. Proves: under 18 by self-declared or KYC age floor = true, adults and
  * unknown age = false, only rout_app may execute it, search_path is pinned, rollback removes it.
  */
 import type { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { applyPending, replayDb } from "../../scripts/formal-rls/replay";
+import { applyPending, applyReleased, replayDb } from "../../scripts/formal-rls/replay";
 
 const SEVENTEEN = "00000000-0000-4000-8000-000000002921";
 const ADULT = "00000000-0000-4000-8000-000000002922";
@@ -15,7 +15,7 @@ const AGED = "00000000-0000-4000-8000-000000002924";
 
 let db: PGlite;
 beforeAll(async () => {
-  db = await replayDb();
+  db = await replayDb((f) => f < "0292");
   await db.exec(`
     insert into public.users (id, email, age_floor, age_floor_at) values
       ('${SEVENTEEN}', 'seventeen@example.test', 17, current_date),
@@ -23,7 +23,7 @@ beforeAll(async () => {
       ('${AGED}', 'aged@example.test', 17, current_date - interval '1 year 1 day');
     insert into public.users (id, email) values ('${NOAGE}', 'noage@example.test');
   `);
-  await applyPending(db, "0292_public_owner_minor.sql");
+  await applyReleased(db, "0292_public_owner_minor.sql");
 }, 600_000);
 afterAll(async () => { await db?.close(); });
 
