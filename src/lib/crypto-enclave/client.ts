@@ -396,7 +396,7 @@ export const enclave = {
       const m = message.slice();
       const s = signature.slice();
       const k = publicKey.slice();
-      return callEnclave("badge.verify", { message: m, signature: s, publicKey: k }, [m.buffer, s.buffer, k.buffer]);
+      return callEnclave("badge.verify", { message: m, signature: s, publicKey: k }, moved(m, s, k));
     },
   },
   bhm: {
