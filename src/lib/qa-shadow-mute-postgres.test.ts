@@ -375,7 +375,8 @@ it("accounts under 18 get private Q&A defaults; parental consent stays under 16"
   try {
     await db.exec("begin");
     const id = "eeeeeeee-5555-4555-8555-555555555555";
-    await db.query("insert into public.users(id,email,date_of_birth) values($1,'teen@example.test', current_date - interval '17 years')", [id]);
+    // db/0291: no birth date is ever stored; a 17-year-old is recorded only as a whole-year age floor.
+    await db.query("insert into public.users(id,email,age_floor,age_floor_at) values($1,'teen@example.test', 17, current_date)", [id]);
     const u = (await db.query<{ qa_permission_level: string; is_minor: boolean }>("select qa_permission_level, is_minor from public.users where id=$1", [id])).rows[0]!;
     expect(u.qa_permission_level).toBe("verified_only");
     expect(u.is_minor).toBe(false);
