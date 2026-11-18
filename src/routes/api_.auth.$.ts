@@ -75,6 +75,35 @@ function traceContext(request: Request, relativePath?: string) {
   };
 }
 
+/**
+ * Redirect for a new social member, or null. Only a `signup_disabled` refusal with a verified
+ * provider profile qualifies; everything else (linking errors, stale callbacks) keeps its path.
+ */
+export async function socialOnboardingHandoff(res: Response, request: Request, profile: import("@/lib/auth/social-onboarding").CapturedSocialProfile | null): Promise<Response | null> {
+  const loc = res.headers.get("location");
+  if (!loc || !profile) return null;
+  let error: string | null = null;
+  try {
+    error = new URL(loc, request.url).searchParams.get("error");
+  } catch {
+    return null;
+  }
+  if (error !== "signup_disabled") return null;
+  const { onboardingFromProfile, signSocialOnboarding, onboardingCookie, SOCIAL_ONBOARD_PATH } = await import("@/lib/auth/social-onboarding");
+  const data = onboardingFromProfile(profile);
+  if (!data) return null;
+  const { resolveAuthSecret } = await import("@/lib/better-auth.server");
+  const secret = resolveAuthSecret()?.secret;
+  if (!secret) return null;
+  const ticket = await signSocialOnboarding(secret, data, Math.floor(Date.now() / 1000));
+  const headers = new Headers({ location: SOCIAL_ONBOARD_PATH, "cache-control": "no-store" });
+  // Keep Better Auth's own cookie updates (state cleanup) next to the onboarding ticket.
+  for (const c of res.headers.getSetCookie?.() ?? []) headers.append("set-cookie", c);
+  headers.append("set-cookie", onboardingCookie(ticket));
+  console.info("[auth] new social member handed to passkey onboarding", { provider: data.provider });
+  return new Response(null, { status: 302, headers });
+}
+
 export async function handleAuthRequest({ request }: { request: Request }) {
   try {
     const { createRoutAuth, isProviderConfigured, missingProviderKeys, resolveAuthSecret } = await import("@/lib/better-auth.server");
@@ -185,7 +214,28 @@ export async function handleAuthRequest({ request }: { request: Request }) {
       }
     }
 
-    const res = await auth.handler(request);
+    // OAuth callbacks run in a capture scope: when Better Auth refuses a new member with
+    // `signup_disabled`, the verified provider profile becomes a signed onboarding ticket
+    // (pending_passkey_setup) and the member continues to age + passkey, never to an error.
+    const isCallback = request.method === "GET" && /\/callback\/[a-z0-9-]+$/.test(relativePath);
+    let res: Response;
+    if (isCallback) {
+      const { runSocialCallback } = await import("@/lib/auth/social-onboarding-capture.server");
+      const { result, profile } = await runSocialCallback(() => auth.handler(request));
+      res = result;
+      const handoff = await socialOnboardingHandoff(res, request, profile);
+      if (handoff) return handoff;
+    } else {
+      res = await auth.handler(request);
+    }
+    if (relativePath === "/passkey/verify-registration" && res.ok) {
+      const { readOnboardingCookie, clearOnboardingCookie } = await import("@/lib/auth/social-onboarding");
+      if (readOnboardingCookie(request.headers.get("cookie"))) {
+        const headers = new Headers(res.headers);
+        headers.append("set-cookie", clearOnboardingCookie());
+        res = new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+      }
+    }
     if (relativePath === "/passkey/generate-register-options" && res.ok) {
       // Ask for the authenticator's attestation; only this field changes, the challenge stays.
       const options = await res.json() as Record<string, unknown>;

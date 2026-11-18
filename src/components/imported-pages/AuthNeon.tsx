@@ -27,6 +27,7 @@ import { isMinorDob, signupAgeProblem } from "@/lib/minor-safety";
 import { redeemLoginCodeFn } from "@/lib/login-code.functions";
 import { SecondFactorStep } from "@/components/auth/SecondFactorStep";
 import { PublicProviderSignIn } from "@/components/auth/PublicProviderSignIn";
+import { SocialOnboardingDialog } from "@/components/auth/SocialOnboardingDialog";
 
 /** Deliberately permissive: catches typos, never rejects a valid address. */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -89,6 +90,8 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
   const [recoveryFiled, setRecoveryFiled] = useState(false);
   const [recoveryToken, setRecoveryToken] = useState<string | null>(null);
   const [consented, setConsented] = useState(false);
+  // `?onboard=social`: a new Google/GitHub/GitLab member in pending_passkey_setup (set by the address read below).
+  const [socialOnboard, setSocialOnboard] = useState(false);
   const [dob, setDob] = useState("");
   const [parentEmail, setParentEmail] = useState("");
   const minor = isMinorDob(dob);
@@ -135,6 +138,10 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
       setRecoveryToken(token);
       setMode("recovery");
     }
+    if (params.get("onboard") === "social" && !adminPortal) {
+      setMode("signup");
+      setSocialOnboard(true);
+    }
     if (params.get("second_factor") === "1") {
       setMode("signin");
       setStep("second");
@@ -162,6 +169,9 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
   };
 
   /** Session cookie is set server-side: one full load to /auth/continue, which re-checks it and 303s. */
+  // `/auth/sign-up?onboard=social`: a new Google/GitHub/GitLab member waits in
+  // pending_passkey_setup; read after hydration so the server frame stays the same.
+
   const goToPostAuth = () => {
     redirected.current = true;
     window.location.replace(POST_AUTH_PATH);
@@ -453,6 +463,15 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
 
   return (
     <AppLayout>
+      {socialOnboard && (
+        <SocialOnboardingDialog
+          onEnroll={async (ticket) => {
+            await enrollPasskey(ticket, "ROUT");
+            toast.success(t("auth.ui.toast.welcome"));
+            goToPostAuth();
+          }}
+        />
+      )}
       <div className="flex min-h-[calc(100vh-4rem)] w-full flex-col items-center justify-center bg-background p-4 text-foreground">
         {!adminPortal && (
           <div className="w-full max-w-md md:max-w-4xl">

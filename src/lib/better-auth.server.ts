@@ -6,6 +6,8 @@ import { magicLinkTwoFactor } from "@/lib/auth/magic-link-two-factor";
 import { symmetricDecrypt } from "better-auth/crypto";
 import { hashedBackupCodeStore } from "@/lib/auth/backup-code-hash";
 import { passkey } from "@better-auth/passkey";
+import { github as githubProvider, gitlab as gitlabProvider, google as googleProvider } from "better-auth/social-providers";
+import { capturingProvider } from "@/lib/auth/social-onboarding-capture.server";
 import { GatewayPool, databaseTransport, hasDatabase } from "@/lib/neon";
 import { betterAuthDatabase } from "@/lib/neon-kysely.server";
 import { APP_DOMAINS } from "@/lib/app-domains";
@@ -160,20 +162,22 @@ export function createRoutAuth(request?: Request) {
 
   const socialProviders: Record<string, unknown> = {};
   const google = pair("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET");
-  if (google) socialProviders["google"] = { ...google, prompt: "select_account", disableSignUp: true };
+  // disableSignUp stays on: a new member is handed to the passkey onboarding instead
+  // (social-onboarding.ts); capturingProvider only notes the verified userinfo for that hand-off.
+  if (google) socialProviders["google"] = capturingProvider(googleProvider as never, { ...google, prompt: "select_account", disableSignUp: true });
   const github = pair("GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET");
-  if (github) socialProviders["github"] = { ...github, disableSignUp: true };
+  if (github) socialProviders["github"] = capturingProvider(githubProvider as never, { ...github, disableSignUp: true });
   const gitlab = pair("GITLAB_CLIENT_ID", "GITLAB_CLIENT_SECRET");
   if (gitlab) {
     // Pinned so GitLab (Group Application) always sees the exact registered URI,
     // whatever host the visitor used. read_user is added by Better Auth itself.
-    socialProviders["gitlab"] = {
+    socialProviders["gitlab"] = capturingProvider(gitlabProvider as never, {
       ...gitlab,
       disableSignUp: true,
       issuer: gitlabIssuer(),
       redirectURI: gitlabRedirectUri(),
       scope: ["openid", "profile", "email"],
-    };
+    });
   }
   const apple = pair("APPLE_CLIENT_ID", "APPLE_CLIENT_SECRET");
   if (apple) socialProviders["apple"] = { ...apple, disableSignUp: true, appBundleIdentifier: env("APPLE_APP_BUNDLE_IDENTIFIER") };

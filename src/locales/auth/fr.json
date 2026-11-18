@@ -392,6 +392,17 @@
   "auth.age.savedMinor": "Merci. Nous avons envoyé un e-mail à ton parent pour demander son accord.",
   "auth.age.failed": "Cela n'a pas fonctionné. Réessaie dans un instant.",
   "auth.provider.passkeyTile": "Passkey",
-  "auth.provider.signupHint": "Compte Google, GitHub ou GitLab déjà lié ? Connectez-vous directement.",
-  "auth.signupDisabled": "Ce compte n'est pas encore lié à ROUT. Créez d'abord votre compte avec une passkey, puis liez Google, GitHub ou GitLab dans vos paramètres."
+  "auth.provider.signupHint": "Nouveau sur ROUT ? Choisissez Google, GitHub ou GitLab : nous vous demanderons ensuite votre âge et vous créerez votre passkey.",
+  "auth.signupDisabled": "Nous n'avons pas pu confirmer votre adresse e-mail auprès de ce service. Créez votre compte avec votre adresse e-mail et une passkey.",
+  "auth.onboard.step": "Étape {{n}} sur 2",
+  "auth.onboard.title": "Bienvenue via {{provider}}",
+  "auth.onboard.body": "Vous créez un compte ROUT pour {{email}}. D'abord votre âge, puis votre passkey.",
+  "auth.onboard.next": "Suivant : passkey",
+  "auth.onboard.passkeyTitle": "Sécurisez votre compte avec une passkey",
+  "auth.onboard.passkeyBody": "Chaque compte ROUT a une passkey. Confirmez avec Face ID, Touch ID, Windows Hello ou une clé de sécurité.",
+  "auth.onboard.passkeyCta": "Créer une passkey",
+  "auth.onboard.passkeyNote": "Votre compte n'existe et vous n'êtes connecté qu'après cette étape. Ensuite, vous pourrez aussi vous connecter avec {{provider}}.",
+  "auth.onboard.passkeyFailed": "La passkey n'a pas été créée. Réessayez.",
+  "auth.onboard.cancel": "Annuler",
+  "auth.onboard.expired": "Cette inscription a expiré. Choisissez à nouveau votre compte."
 }

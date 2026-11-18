@@ -18,6 +18,12 @@ export type SignupTicket = {
   ageFloor: number;
   parentEmail: string | null;
   consent: string;
+  /**
+   * Set only by the social onboarding (api/auth-passkey/social): the provider identity that is
+   * linked to the new account in the same transaction as its first passkey, and whose provider
+   * already verified the e-mail address.
+   */
+  social?: { provider: string; accountId: string };
   exp: number;
   nonce: string;
 };
