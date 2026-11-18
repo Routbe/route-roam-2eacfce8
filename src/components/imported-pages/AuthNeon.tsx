@@ -163,6 +163,13 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
   };
 
   /** Session cookie is set server-side: one full load to /auth/continue, which re-checks it and 303s. */
+  // `/auth/sign-up?onboard=social`: a new Google/GitHub/GitLab member waits in
+  // pending_passkey_setup; read after hydration so the server frame stays the same.
+  const [socialOnboard, setSocialOnboard] = useState(false);
+  useEffect(() => {
+    if (!adminPortal && new URLSearchParams(window.location.search).get("onboard") === "social") setSocialOnboard(true);
+  }, [adminPortal]);
+
   const goToPostAuth = () => {
     redirected.current = true;
     window.location.replace(POST_AUTH_PATH);
@@ -454,6 +461,15 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
 
   return (
     <AppLayout>
+      {socialOnboard && (
+        <SocialOnboardingDialog
+          onEnroll={async (ticket) => {
+            await enrollPasskey(ticket, "ROUT");
+            toast.success(t("auth.ui.toast.welcome"));
+            goToPostAuth();
+          }}
+        />
+      )}
       <div className="flex min-h-[calc(100vh-4rem)] w-full flex-col items-center justify-center bg-background p-4 text-foreground">
         {!adminPortal && (
           <div className="w-full max-w-md md:max-w-4xl">
