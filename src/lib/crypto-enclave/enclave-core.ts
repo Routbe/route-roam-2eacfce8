@@ -1854,6 +1854,18 @@ const coreHandlers: CoreHandlers = {
     return { valid: await zkOp(() => capacityVerifyTake(bytes(before), bytes(take), bytes(after), str(poolId, 128), epochArg(step), bytes(proof))) };
   },
 
+  async "badge.verify"({ message, signature, publicKey }) {
+    const m = bytes(message);
+    const sig = bytes(signature);
+    const pk = bytes(publicKey);
+    if (m.byteLength === 0 || m.byteLength > 2048 || sig.byteLength !== 64 || pk.byteLength !== 32) fail("invalid_input");
+    try {
+      return { valid: ed25519.verify(sig, m, pk) };
+    } catch {
+      return { valid: false };
+    }
+  },
+
   async "hash.sha256Hex"({ text }) {
     const input = enc.encode(str(text, 4096));
     try {

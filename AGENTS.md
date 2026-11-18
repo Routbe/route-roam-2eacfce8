@@ -111,6 +111,7 @@ use the editor.
 ## Server function guards
 - createServerFn exports need requireAuth/requireDeveloperAccess/optionalAuth or an entry in PUBLIC_SERVER_FNS (src/test/server-fn-auth-guard.test.ts). Why: route gates only hide UI.
 
+
 <!-- AGENT-MEMORY:BEGIN -->
 ## One-file migration rollout
 - A GO for a single migration is applied with scripts/migration-rollout.ts --apply: the exact db/ file text travels as one parameter, runs only if its SHA-256 equals the file checksum and its predecessor is recorded, and is recorded with the definer guard in the same transaction (dry run: src/test/migration-rollout.test.ts). Why: a retyped or hand-split file must never diverge from db/.

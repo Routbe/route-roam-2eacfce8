@@ -1,4 +1,5 @@
-import { ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { KeyRound, Loader2, ShieldAlert, ShieldCheck } from "lucide-react";
 import { VerifiedIdentityIcon } from "./VerifiedIdentityIcon";
 import { CreatorBadgeIcon } from "@/components/profile/CreatorBadgeIcon";
 import { BadgeBackdrop } from "@/components/profile/BadgeBackdrop";
@@ -12,6 +13,8 @@ import {
   type BadgeNameFormat,
   type BadgeType,
 } from "@/lib/profile-display";
+import type { BadgeAttestation } from "@/lib/identity/badge-attestation";
+import type { BadgeSignatureState } from "@/lib/identity/badge-verify";
 
 /**
  * Eén badge, drie betekenissen — vrij te kiezen (of weg te laten):
@@ -39,6 +42,8 @@ export function ProfileBadge({
   cardBorder,
   textColor,
   mutedColor,
+  attestation,
+  handle,
 }: {
   /** `linked`: wit vinkje op een privé-alias — geverifieerde mens, zonder naam of land. */
   type: BadgeType | "linked";
@@ -58,8 +63,37 @@ export function ProfileBadge({
   cardBorder?: string;
   textColor?: string;
   mutedColor?: string;
+  /** Ed25519 attestation over this card (blue mark only); checked in the crypto worker on open. */
+  attestation?: BadgeAttestation | null;
+  /** Profile handle the attestation is bound to. */
+  handle?: string | null;
 }) {
   const { t, locale } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [sig, setSig] = useState<BadgeSignatureState | null>(null);
+  const checked = useRef<string | null>(null);
+  const signed = type === "verified" && !!attestation;
+
+  // The signature is checked once per attestation, the first time the card opens.
+  useEffect(() => {
+    if (!open || !signed || !attestation || checked.current === attestation.sig) return;
+    checked.current = attestation.sig;
+    let live = true;
+    setSig("checking");
+    void import("@/lib/identity/badge-verify")
+      .then(({ verifyBadgeAttestation }) =>
+        verifyBadgeAttestation(attestation, { handle, method: method ?? null, name: legalName, country, verifiedAt }),
+      )
+      .catch(() => "unavailable" as const)
+      .then((state) => {
+        if (live) setSig(state);
+      });
+    return () => {
+      live = false;
+      if (checked.current === attestation.sig) checked.current = null;
+    };
+  }, [open, signed, attestation, handle, method, legalName, country, verifiedAt]);
+
   if (type === "none") return null;
 
   const on = monthYear(verifiedAt, locale || "nl");
@@ -86,11 +120,8 @@ export function ProfileBadge({
         ? t("badges.businessExplanation")
         : type === "influencer"
           ? t("badges.creatorExplanation")
-          : method === "team"
-            ? t("badges.officialTeamVerified")
-            : method === "didit"
-              ? t("badges.officialDiditVerified")
-              : t("badges.officialMemberBody");
+          : // One validation sentence for every blue mark; the method line above says how it was earned.
+            t("badges.officialMemberBody");
 
   // Method line under the name: how this mark was earned.
   const methodLine =
@@ -128,14 +159,17 @@ export function ProfileBadge({
       : "";
   const shownCountry = type === "verified" ? (country ?? "").trim().toUpperCase() : "";
 
+  const muted = mutedColor ? { color: mutedColor } : undefined;
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
           aria-label={title}
           title={title}
-          className="tap-wide inline-flex items-center transition-opacity hover:opacity-70 focus:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2"
+          aria-haspopup="dialog"
+          className="tap-badge inline-flex items-center rounded-full transition-[opacity,transform] duration-150 hover:opacity-70 active:scale-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2 motion-reduce:transition-none"
         >
           <BadgeBackdrop variant={backdrop} color={backdropColor} size={size}>
             {icon()}
@@ -144,13 +178,24 @@ export function ProfileBadge({
       </PopoverTrigger>
       <PopoverContent
         align="center"
-        className="w-72 rounded-xl border p-4 text-left"
+        aria-label={title}
+        className="w-72 max-w-[calc(100vw-1.5rem)] rounded-xl border p-4 text-left duration-200 ease-out data-[state=closed]:duration-150 motion-reduce:animate-none"
         style={
           cardBg ? { background: cardBg, borderColor: cardBorder, color: textColor } : undefined
         }
       >
         <div className="flex items-start gap-2">
-          <span className="mt-0.5 shrink-0">{icon()}</span>
+          {type === "verified" ? (
+            <span className="relative mt-0.5 inline-flex shrink-0" data-testid="badge-card-shield">
+              <span
+                aria-hidden
+                className="absolute inset-0 rounded-full bg-identity-verified/40 motion-safe:animate-badge-shield-ring motion-reduce:hidden"
+              />
+              <VerifiedIdentityIcon className="relative h-6 w-6 motion-safe:animate-badge-shield-pop" />
+            </span>
+          ) : (
+            <span className="mt-0.5 shrink-0">{icon()}</span>
+          )}
           <div className="space-y-1">
             <p className="text-sm font-semibold leading-tight">{title}</p>
             {(shownName || shownCountry) && (
@@ -180,6 +225,32 @@ export function ProfileBadge({
             {privacyLine && (
               <p className="text-xs leading-relaxed" style={mutedColor ? { color: mutedColor } : undefined}>
                 {privacyLine}
+              </p>
+            )}
+            {signed && sig && (
+              <p
+                className="mt-1 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium"
+                style={cardBorder ? { borderColor: cardBorder } : undefined}
+                role="status"
+                aria-live="polite"
+                data-signature={sig}
+              >
+                {sig === "checking" ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : sig === "valid" ? (
+                  <KeyRound className="h-3.5 w-3.5 text-identity-verified" aria-hidden />
+                ) : (
+                  <ShieldAlert className={`h-3.5 w-3.5 ${sig === "invalid" ? "text-destructive" : ""}`} aria-hidden />
+                )}
+                <span style={sig === "valid" ? undefined : muted}>
+                  {sig === "checking"
+                    ? t("badges.signatureChecking")
+                    : sig === "valid"
+                      ? t("badges.signatureValid")
+                      : sig === "invalid"
+                        ? t("badges.signatureInvalid")
+                        : t("badges.signatureUnavailable")}
+                </span>
               </p>
             )}
           </div>

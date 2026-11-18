@@ -280,6 +280,7 @@ import { Route as ApiAiRewriteRouteImport } from './routes/api_.ai.rewrite'
 import { Route as ApiAuthPasskeyRecoveryRouteImport } from './routes/api_.auth-passkey.recovery'
 import { Route as ApiAuthPasskeySignupRouteImport } from './routes/api_.auth-passkey.signup'
 import { Route as ApiAuthSplatRouteImport } from './routes/api_.auth.$'
+import { Route as ApiBadgeKeyRouteImport } from './routes/api_.badge.key'
 import { Route as ApiBadgeVerifyRouteImport } from './routes/api_.badge.verify'
 import { Route as ApiBunqCheckStatusRouteImport } from './routes/api_.bunq.check-status'
 import { Route as ApiHardwareVerifyRouteImport } from './routes/api_.hardware.verify'
@@ -1853,6 +1854,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBadgeKeyRoute = ApiBadgeKeyRouteImport.update({
+  id: '/api_/badge/key',
+  path: '/api/badge/key',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBadgeVerifyRoute = ApiBadgeVerifyRouteImport.update({
   id: '/api_/badge/verify',
   path: '/api/badge/verify',
@@ -3084,6 +3090,7 @@ export interface FileRoutesByFullPath {
   '/api/auth-passkey/recovery': typeof ApiAuthPasskeyRecoveryRoute
   '/api/auth-passkey/signup': typeof ApiAuthPasskeySignupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/badge/key': typeof ApiBadgeKeyRoute
   '/api/badge/verify': typeof ApiBadgeVerifyRoute
   '/api/bunq/check-status': typeof ApiBunqCheckStatusRoute
   '/api/hardware/verify': typeof ApiHardwareVerifyRoute
@@ -3516,6 +3523,7 @@ export interface FileRoutesByTo {
   '/api/auth-passkey/recovery': typeof ApiAuthPasskeyRecoveryRoute
   '/api/auth-passkey/signup': typeof ApiAuthPasskeySignupRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/badge/key': typeof ApiBadgeKeyRoute
   '/api/badge/verify': typeof ApiBadgeVerifyRoute
   '/api/bunq/check-status': typeof ApiBunqCheckStatusRoute
   '/api/hardware/verify': typeof ApiHardwareVerifyRoute
@@ -3965,6 +3973,7 @@ export interface FileRoutesById {
   '/api_/auth-passkey/recovery': typeof ApiAuthPasskeyRecoveryRoute
   '/api_/auth-passkey/signup': typeof ApiAuthPasskeySignupRoute
   '/api_/auth/$': typeof ApiAuthSplatRoute
+  '/api_/badge/key': typeof ApiBadgeKeyRoute
   '/api_/badge/verify': typeof ApiBadgeVerifyRoute
   '/api_/bunq/check-status': typeof ApiBunqCheckStatusRoute
   '/api_/hardware/verify': typeof ApiHardwareVerifyRoute
@@ -4415,6 +4424,7 @@ export interface FileRouteTypes {
     | '/api/auth-passkey/recovery'
     | '/api/auth-passkey/signup'
     | '/api/auth/$'
+    | '/api/badge/key'
     | '/api/badge/verify'
     | '/api/bunq/check-status'
     | '/api/hardware/verify'
@@ -4847,6 +4857,7 @@ export interface FileRouteTypes {
     | '/api/auth-passkey/recovery'
     | '/api/auth-passkey/signup'
     | '/api/auth/$'
+    | '/api/badge/key'
     | '/api/badge/verify'
     | '/api/bunq/check-status'
     | '/api/hardware/verify'
@@ -5295,6 +5306,7 @@ export interface FileRouteTypes {
     | '/api_/auth-passkey/recovery'
     | '/api_/auth-passkey/signup'
     | '/api_/auth/$'
+    | '/api_/badge/key'
     | '/api_/badge/verify'
     | '/api_/bunq/check-status'
     | '/api_/hardware/verify'
@@ -5604,6 +5616,7 @@ export interface RootRouteChildren {
   ApiAuthPasskeyRecoveryRoute: typeof ApiAuthPasskeyRecoveryRoute
   ApiAuthPasskeySignupRoute: typeof ApiAuthPasskeySignupRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiBadgeKeyRoute: typeof ApiBadgeKeyRoute
   ApiBadgeVerifyRoute: typeof ApiBadgeVerifyRoute
   ApiBunqCheckStatusRoute: typeof ApiBunqCheckStatusRoute
   ApiHardwareVerifyRoute: typeof ApiHardwareVerifyRoute
@@ -7625,6 +7638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api_/badge/key': {
+      id: '/api_/badge/key'
+      path: '/api/badge/key'
+      fullPath: '/api/badge/key'
+      preLoaderRoute: typeof ApiBadgeKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api_/badge/verify': {
       id: '/api_/badge/verify'
       path: '/api/badge/verify'
@@ -9613,6 +9633,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthPasskeyRecoveryRoute: ApiAuthPasskeyRecoveryRoute,
   ApiAuthPasskeySignupRoute: ApiAuthPasskeySignupRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiBadgeKeyRoute: ApiBadgeKeyRoute,
   ApiBadgeVerifyRoute: ApiBadgeVerifyRoute,
   ApiBunqCheckStatusRoute: ApiBunqCheckStatusRoute,
   ApiHardwareVerifyRoute: ApiHardwareVerifyRoute,

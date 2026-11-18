@@ -3,7 +3,8 @@
  * profiles.legal_first_name_sealed / legal_last_name_sealed (db/0287 columns, key ring wrapped by
  * ROUT_VAULT_KEK) through the db/0290 definer rout_kyc_store_legal_name; plaintext never reaches
  * Neon or Didit-side storage. For IBAN holder checks the name is opened in this process only,
- * compared, and dropped: callers get a boolean, never the name.
+ * compared, and dropped: callers get a boolean, never the name. The one exception is
+ * openPublicLegalName: the owner-approved blue-mark card of a KYC-attested root profile.
  */
 import { holderMatchesLegalName } from "./legal-name-match";
 
@@ -61,4 +62,32 @@ export async function workspaceOwnerHolderMatches(workspaceId: string, holder: s
   const rows = (await sql`select owner_id, first_sealed, last_sealed from public.rout_ws_support_owner_sealed_name(${workspaceId}::uuid)`) as { owner_id: string; first_sealed: unknown; last_sealed: unknown }[];
   for (const r of rows) if (await holderMatchesSealed(r.owner_id, { first: r.first_sealed, last: r.last_sealed }, holder)) return true;
   return false;
+}
+
+/**
+ * The sealed legal name for the public blue-mark card (owner directive 2026-11-18), opened in
+ * this process only. Callers: readPublicProfile, after the KYC mark and the privacy shield allow
+ * names; the minor firewall is applied by the caller. Null before 0287/0290, without a sealed
+ * pair, without ROUT_VAULT_KEK or on any failure.
+ */
+export async function openPublicLegalName(profileId: string): Promise<string | null> {
+  try {
+    if (!(await live())) return null;
+    const { sql } = await import("@/lib/neon");
+    const [row] = (await sql`select legal_first_name_sealed as f, legal_last_name_sealed as l
+        from public.profiles where id = ${profileId}::uuid limit 1`) as { f: unknown; l: unknown }[];
+    if (!(row?.f instanceof Uint8Array) || !(row?.l instanceof Uint8Array)) return null;
+    const { withProfileFieldKeys } = await import("@/lib/profile-private/field-keys.server");
+    const { openProfileRow } = await import("@/lib/profile-private/sealed-profile");
+    return await withProfileFieldKeys((ring) => {
+      if (!ring) return null;
+      const opened = openProfileRow(ring, { id: profileId, legal_first_name_sealed: row.f, legal_last_name_sealed: row.l }, FIELDS);
+      const first = String(opened["legal_first_name"] ?? "").trim();
+      const last = String(opened["legal_last_name"] ?? "").trim();
+      return `${first} ${last}`.trim() || null;
+    });
+  } catch (error) {
+    console.warn("[legal-name:public:skipped]", error instanceof Error ? error.name : "error");
+    return null;
+  }
 }

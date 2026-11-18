@@ -552,6 +552,8 @@ export function ProfileView({
               cardBorder={t.border}
               textColor={t.text}
               mutedColor={t.muted}
+              attestation={free || badgeType !== "verified" ? null : (profile.badge_attestation ?? null)}
+              handle={profile.username ?? null}
             />
           )}
           {showSupporter && <SupporterCrownBadge color="var(--supporter-gold)" />}

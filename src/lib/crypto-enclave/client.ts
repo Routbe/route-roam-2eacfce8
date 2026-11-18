@@ -390,6 +390,15 @@ export const enclave = {
   hash: {
     sha256Hex: (text: string) => callEnclave("hash.sha256Hex", { text }),
   },
+  badge: {
+    /** Copies are transferred, so the caller keeps its own bytes. */
+    verify: (message: Uint8Array, signature: Uint8Array, publicKey: Uint8Array) => {
+      const m = message.slice();
+      const s = signature.slice();
+      const k = publicKey.slice();
+      return callEnclave("badge.verify", { message: m, signature: s, publicKey: k }, moved(m, s, k));
+    },
+  },
   bhm: {
     match: (clientId: string, hashes: string[], identities: { kind: string; value: string }[]) =>
       callEnclave("bhm.match", { clientId, hashes, identities }),
