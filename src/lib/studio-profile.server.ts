@@ -353,11 +353,13 @@ export async function readPublicProfile(rawHandle: string) {
   if (!profile) return null;
   // Privacyschild: bevestigt enkel "echte mens". Wettelijke naam, handelsnaam en land
   // verlaten de server dan nooit — ook niet via de JSON van de pagina.
+  let namesAllowed = false;
   {
     const { parseDisplayPrefs } = await import("./profile-display");
     const prefs = parseDisplayPrefs(profile["display_prefs"]);
     if (!prefs.publicProfile) return null;
-    const { applyPrivacyShield } = await import("./privacy-shield-rules");
+    const { applyPrivacyShield, identityNamesPublic } = await import("./privacy-shield-rules");
+    namesAllowed = identityNamesPublic(prefs, profile["is_business"] === true || profile["is_influencer"] === true);
     applyPrivacyShield(profile, prefs);
   }
   // Gecachte sociale volgeraantallen: één goedkope join-vrije query, geen
@@ -372,14 +374,35 @@ export async function readPublicProfile(rawHandle: string) {
   }
   const trust = await readTrustMeta(profile);
   // Identity names travel only with the Didit-backed mark; a paid or admin flag is not enough.
+  let badgeAttestation: unknown = null;
   if (!trust.legal_identity_verified) {
     profile["verified_legal_name"] = null;
     profile["business_name"] = null;
     profile["country_code"] = null;
+  } else {
+    // Blue-mark card: sealed legal name, minor firewall (first name + initial) and an Ed25519
+    // signature over exactly what the card shows. A failure here never takes the profile down.
+    try {
+      const { prepareBadgeCard } = await import("./identity/badge-card.server");
+      const card = await prepareBadgeCard({
+        profileId: String(profile["id"]),
+        handle: (profile["username"] as string | null) ?? null,
+        method: trust.identity_method,
+        namesAllowed,
+        legacyName: (profile["verified_legal_name"] as string | null) ?? null,
+        country: (profile["country_code"] as string | null) ?? null,
+        verifiedAt: trust.identity_verified_at,
+      });
+      profile["verified_legal_name"] = card.name;
+      profile["legal_name_masked"] = card.nameMasked;
+      badgeAttestation = card.attestation;
+    } catch (error) {
+      console.warn("[public-profile:badge-card:skipped]", error);
+    }
   }
   const { readFediverseProfile } = await import("./fediverse-profile.server");
   const fediverse = await readFediverseProfile(String(profile["id"])).catch(() => null);
-  return { ...profile, ...trust, is_pro: hasProfilePro(profile), social_links: socialLinks, fediverse } as Row;
+  return { ...profile, ...trust, badge_attestation: badgeAttestation, is_pro: hasProfilePro(profile), social_links: socialLinks, fediverse } as Row;
 }
 
 /**

@@ -256,6 +256,10 @@ export interface ProfileRecord {
   identity_method?: "team" | "didit" | null;
   /** When the identity behind the blue mark was confirmed (shown as month + year). */
   identity_verified_at?: string | null;
+  /** Ed25519 attestation over the blue-mark card (src/lib/identity/badge-attestation.ts). */
+  badge_attestation?: import("@/lib/identity/badge-attestation").BadgeAttestation | null;
+  /** The card shows first name + initial only: the owner is under 18. */
+  legal_name_masked?: boolean;
   /** Tier 1: proven unique human (pseudonym-safe). */
   real_human_verified?: boolean;
   /** Server-signed Account Genesis stamp (HMAC of id + creation time). */
