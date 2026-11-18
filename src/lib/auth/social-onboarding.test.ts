@@ -50,7 +50,7 @@ describe("social onboarding ticket (pending_passkey_setup)", () => {
 
   it("notes the provider profile only inside the callback scope", async () => {
     const factory = () => ({ id: "gitlab", getUserInfo: async () => ({ user: { id: 7, email: "g@example.com", emailVerified: true } }) });
-    const opts = capturingProvider(factory as never, { clientId: "c" }) as { getUserInfo: (t: never) => Promise<unknown> };
+    const opts = capturingProvider(factory as never, { clientId: "c" }) as unknown as { getUserInfo: (t: never) => Promise<unknown> };
     await opts.getUserInfo({} as never); // outside a scope: nothing kept
     const { profile } = await runSocialCallback(() => opts.getUserInfo({} as never));
     expect(profile).toEqual({ provider: "gitlab", user: { id: 7, email: "g@example.com", emailVerified: true } });
