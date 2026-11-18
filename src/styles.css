@@ -427,6 +427,19 @@ textarea[data-tour^="cc-"] {
   --shadow-paper-xl: var(--paper-shadow-xl);
 
   --animate-shimmer: shimmer 3s ease-in-out infinite;
+  --animate-badge-shield-pop: badge-shield-pop 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-badge-shield-ring: badge-shield-ring 900ms ease-out 120ms both;
+}
+
+/* Blue-mark card header: the shield pops in once, a single ring fades out behind it. */
+@keyframes badge-shield-pop {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes badge-shield-ring {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  100% { transform: scale(1.9); opacity: 0; }
 }
 
 @keyframes shimmer {
@@ -1630,6 +1643,11 @@ html[data-liquid]:not([data-theme="mechanical"]) [style*="--lg-filter"] { backdr
   background-image: radial-gradient(140px circle at var(--mouse-x, 50%) var(--mouse-y, 0%), var(--spatial-indicator), var(--optical-clear));
 }
 /* Widens a short text link's touch area to 44 px without moving its text (WCAG 2.5.5 AAA). */
+/* Micro-badge (18 px icon) with a centred 44 x 44 px touch target that does not change the layout. */
+@utility tap-badge {
+  position: relative;
+  &::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 2.75rem); height: max(100%, 2.75rem); transform: translate(-50%, -50%); }
+}
 @utility tap-wide {
   position: relative;
   &::after { content: ""; position: absolute; inset-block: 0; left: 50%; width: max(100%, 2.75rem); transform: translateX(-50%); }
