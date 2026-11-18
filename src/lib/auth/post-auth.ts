@@ -29,6 +29,8 @@ export const AUTH_ERROR_CODES = [
   "link_expired",
   "access_denied",
   "account_not_linked",
+  /** Better Auth: a social sign-in for an address without a ROUT account (sign-up stays passkey/OPAQUE-only). */
+  "signup_disabled",
 ] as const;
 export type AuthErrorCode = (typeof AUTH_ERROR_CODES)[number];
 

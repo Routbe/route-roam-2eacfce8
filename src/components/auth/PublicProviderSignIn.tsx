@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Fingerprint, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,21 @@ import type { AuthReadiness } from "@/lib/auth-readiness";
 import { authClient } from "@/lib/auth-client";
 import { POST_AUTH_PATH } from "@/lib/auth/post-auth";
 
-export function PublicProviderSignIn({ configured, readiness, disabled }: { configured: string[]; readiness: AuthReadiness | null; disabled: boolean }) {
+export function PublicProviderSignIn({
+  configured,
+  readiness,
+  disabled,
+  passkey,
+  errorPath = "/auth/sign-in",
+}: {
+  configured: string[];
+  readiness: AuthReadiness | null;
+  disabled: boolean;
+  /** Optional passkey tile in the same grid (sign-in: passkey prompt; sign-up: start the passkey form). */
+  passkey?: { label: string; onSelect: () => void };
+  /** Where Better Auth sends a failed sign-in; it appends `?error=<code>` itself. */
+  errorPath?: string;
+}) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState<string | null>(null);
   const [fediverse, setFediverse] = useState<"bluesky" | "mastodon" | null>(null);
@@ -19,7 +33,7 @@ export function PublicProviderSignIn({ configured, readiness, disabled }: { conf
     setBusy(provider.id);
     try {
       // Better Auth 1.7 registers generic OIDC providers on the same social endpoint.
-      const result = await authClient.signIn.social({ provider: provider.id, callbackURL: POST_AUTH_PATH, errorCallbackURL: "/auth/sign-in?error=provider_rejected" });
+      const result = await authClient.signIn.social({ provider: provider.id, callbackURL: POST_AUTH_PATH, errorCallbackURL: errorPath });
       if (result.error) { toast.error(t("auth.provider.server", { name: provider.label })); return; }
       if (result.data?.url) window.location.assign(result.data.url);
       else toast.error(t("auth.provider.server", { name: provider.label }));
@@ -29,6 +43,10 @@ export function PublicProviderSignIn({ configured, readiness, disabled }: { conf
   return <div className="space-y-2">
     {/* Mobile: compact icon row. Desktop: full labelled buttons. */}
     <div className="flex flex-wrap justify-center gap-2 md:hidden" role="group" aria-label={t("auth.provider.continue", { name: "" })}>
+      {passkey && <Button type="button" variant="outline" size="icon" aria-label={passkey.label} title={passkey.label}
+        className="h-11 w-11 rounded-xl" disabled={disabled || busy !== null} onClick={passkey.onSelect}>
+        <Fingerprint className="h-[18px] w-[18px]" aria-hidden />
+      </Button>}
       {AUTH_PROVIDERS.map(provider => {
         const available = providerAvailable(provider.id, configured, readiness);
         return <Button key={provider.id} type="button" variant="outline" size="icon" aria-label={t("auth.provider.continue", { name: provider.label })}
@@ -40,6 +58,10 @@ export function PublicProviderSignIn({ configured, readiness, disabled }: { conf
       })}
     </div>
     <div className="hidden space-y-2 md:block">
+    {passkey && <Button type="button" variant="outline" className="min-h-11 w-full justify-start gap-2.5 px-3 text-sm" disabled={disabled || busy !== null} onClick={passkey.onSelect}>
+      <Fingerprint className="h-[18px] w-[18px]" aria-hidden />
+      <span className="min-w-0 flex-1 text-left">{passkey.label}</span>
+    </Button>}
     {AUTH_PROVIDERS.map(provider => {
       const available = providerAvailable(provider.id, configured, readiness);
       return <Button key={provider.id} type="button" variant="outline" className={`min-h-11 w-full justify-start gap-2.5 px-3 text-sm`} disabled={disabled || busy !== null || !available}
