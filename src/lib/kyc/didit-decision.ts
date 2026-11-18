@@ -17,7 +17,7 @@ export type DecisionReading =
   | { ok: true; claims: DocumentClaims; jurisdiction: string; isRealHuman: boolean; ageVector: number | null; legalName: { first: string; last: string } | null }
   | { ok: false; reason: "not_approved" | "no_document" | "vendor_mismatch" | "session_mismatch" };
 
-type Doc = { status?: unknown; document_type?: unknown; document_number?: unknown; personal_number?: unknown; issuing_state?: unknown; nationality?: unknown; date_of_birth?: unknown; first_name?: unknown; last_name?: unknown };
+type Doc = { status?: unknown; document_type?: unknown; document_number?: unknown; personal_number?: unknown; issuing_state?: unknown; nationality?: unknown; date_of_birth?: unknown; first_name?: unknown; last_name?: unknown; given_names?: unknown; family_name?: unknown };
 type Check = { status?: unknown };
 
 const str = (v: unknown): string | null => (typeof v === "string" && v.length <= 128 ? v : null);
@@ -35,8 +35,9 @@ const cleanName = (v: unknown) => {
 };
 /** First and last name as printed on the document (chip first), or null when either is unusable. */
 function legalNameOf(doc: Doc): { first: string; last: string } | null {
-  const first = cleanName(doc.first_name);
-  const last = cleanName(doc.last_name);
+  // OCR uses first_name/last_name; chip (NFC) reads may carry the ICAO given_names/family_name.
+  const first = cleanName(doc.first_name) ?? cleanName(doc.given_names);
+  const last = cleanName(doc.last_name) ?? cleanName(doc.family_name);
   return first && last ? { first, last } : null;
 }
 

@@ -11,8 +11,10 @@
  *
  * Stored: the nullifier (identity_verifications.unique_human_id, and with db/0288 one row
  * per anchor in verified_identity_nullifiers), provider, is_real_human, jurisdiction, and from
- * db/0290 the age floor (whole years, capped at 21). Never stored or logged: names, document or
- * personal numbers, the date of birth, images, the decision body.
+ * db/0290 the age floor (whole years, capped at 21), and the document name only as ciphertext
+ * (profiles.legal_*_sealed, legal-name-vault.server.ts; owner directive 2026-11-18). Never stored
+ * in plaintext or logged: names, document or personal numbers, the date of birth, images, the
+ * decision body.
  * Raw webhook bytes, decision bytes, canonical anchors and the pepper copy are Node.js Buffers
  * (secure-buffer.ts) and are zero-filled with fill(0) right after use; the anchors immediately
  * after the nullifiers are computed. JavaScript strings parsed from the provider response cannot be
@@ -26,7 +28,7 @@ import { readDiditDecision, type KycState } from "./didit-decision";
 import { verifyDiditSignature } from "./didit-signature";
 import { universalNullifier } from "./nullifier";
 import { identityPepper, readPepper } from "./pepper.server";
-import { isWiped, wipe } from "./secure-buffer";
+import { isWiped, secretBuffer, wipe } from "./secure-buffer";
 import { openVendorRef, sealVendorRef } from "./vendor-ref";
 
 export type StartResult =
@@ -112,6 +114,11 @@ export async function attestDidit(input: {
   jurisdiction: string;
   /** Capped age in whole years (derived from the age vector, kyc/age-vector.ts), recorded only from db/0290 on. */
   ageFloor?: number | null;
+  /**
+   * Runs after the identity rows are written and before the session is consumed (also when a
+   * redelivery finds the member already verified), so a failure answers 503 and Didit retries.
+   */
+  afterAttest?: () => Promise<void>;
 }): Promise<AttestResult> {
   const { sql } = await import("@/lib/neon");
   const id = await import("@/lib/identity/identity.server");
@@ -128,6 +135,8 @@ export async function attestDidit(input: {
   }
   const { verificationDecision } = await import("@/lib/identity/identity-tiers");
   if (verificationDecision(await id.getIdentityStatus(input.userId), "didit") === "reject") {
+    // A redelivery after a failed afterAttest lands here: finish that step first.
+    await input.afterAttest?.();
     await id.consumeSession(input.state, "didit");
     return "already_verified";
   }
@@ -170,6 +179,7 @@ export async function attestDidit(input: {
       }
       throw error;
     }
+    await input.afterAttest?.();
   } catch (error) {
     await release();
     throw error;
@@ -268,6 +278,10 @@ async function approve(member: { userId: string; state: string }, sessionId: str
   }
   const anchors = canonicalAnchors(reading.claims);
   reading.claims = {};
+  // The document name moves into unpooled Buffers at once; the parsed strings are dropped here
+  // (V8 strings cannot be overwritten) and the Buffers are zero-filled in finally.
+  const nameBytes = reading.legalName ? { first: secretBuffer(reading.legalName.first), last: secretBuffer(reading.legalName.last) } : null;
+  reading.legalName = null;
   try {
     if (!anchors.length) return "no_document";
     const p = pepper();
@@ -284,9 +298,15 @@ async function approve(member: { userId: string; state: string }, sessionId: str
       isRealHuman: reading.isRealHuman,
       jurisdiction: reading.jurisdiction,
       ageFloor: ageFloorFromVector(reading.ageVector),
+      afterAttest: nameBytes
+        ? async () => {
+            const { storeSealedLegalName } = await import("./legal-name-vault.server");
+            await storeSealedLegalName(member.userId, nameBytes);
+          }
+        : undefined,
     });
   } finally {
     wipeAnchors(anchors);
-    wipe(...anchors.map((a) => a.bytes));
+    wipe(...anchors.map((a) => a.bytes), nameBytes?.first, nameBytes?.last);
   }
 }

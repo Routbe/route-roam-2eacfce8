@@ -1,11 +1,11 @@
 /**
  * Sealed legal name (server-only). Didit's document name is written only as RPF1 ciphertext into
  * profiles.legal_first_name_sealed / legal_last_name_sealed (db/0287 columns, key ring wrapped by
- * ROUT_VAULT_KEK) through the db/0290 definer rout_kyc_store_legal_name; plaintext never reaches
- * Neon or Didit-side storage. For IBAN holder checks the name is opened in this process only,
+ * ROUT_VAULT_KEK), in the member's own context; plaintext never reaches Neon. For IBAN holder checks the name is opened in this process only,
  * compared, and dropped: callers get a boolean, never the name. The one exception is
  * openPublicLegalName: the owner-approved blue-mark card of a KYC-attested root profile.
  */
+import { Buffer } from "node:buffer";
 import { holderMatchesLegalName } from "./legal-name-match";
 
 const FIELDS = ["legal_first_name", "legal_last_name"] as const;
@@ -15,18 +15,32 @@ async function live(): Promise<boolean> {
   return (await hasSchemaFeature("0287")) && (await hasSchemaFeature("0290"));
 }
 
-/** Seals and stores the member's legal name; false (nothing written) before 0287/0290. Runs in the member's context. */
-export async function storeSealedLegalName(userId: string, name: { first: string; last: string }): Promise<boolean> {
-  if (!(await live())) return false;
+/**
+ * Seals the member's document name (UTF-8 bytes) into profiles.legal_first_name_sealed /
+ * legal_last_name_sealed: XChaCha20-Poly1305 under the profile field key, which exists in Neon
+ * only wrapped by ROUT_VAULT_KEK (db/0287). The plaintext columns are set to NULL in the same
+ * update. Runs in the member's own RLS context (rout_owner policy). The caller wipes the input
+ * buffers; the copies made here are wiped by sealProfileField. False (nothing written) before 0287.
+ */
+export async function storeSealedLegalName(userId: string, name: { first: Uint8Array; last: Uint8Array }): Promise<boolean> {
+  const { hasSchemaFeature } = await import("@/lib/schema-features.server");
+  if (!(await hasSchemaFeature("0287"))) return false;
+  if (!name.first.length || !name.last.length) return false;
   const { withProfileFieldKeys } = await import("@/lib/profile-private/field-keys.server");
-  const { sealProfilePatch } = await import("@/lib/profile-private/sealed-profile");
-  const patch = await withProfileFieldKeys((ring) => sealProfilePatch(ring!, userId, { legal_first_name: name.first, legal_last_name: name.last }), { create: true });
-  const first = patch["legal_first_name_sealed"];
-  const last = patch["legal_last_name_sealed"];
-  if (!(first instanceof Uint8Array) || !(last instanceof Uint8Array)) throw new Error("legal_name_seal_failed");
+  const { sealProfileField } = await import("@/lib/profile-private/field-seal");
+  const sealed = await withProfileFieldKeys((ring) => {
+    if (!ring) throw new Error("legal_name_seal_failed");
+    const v = ring.activeVersion;
+    const master = ring.key(v);
+    return { first: sealProfileField(master, v, "legal_first_name", userId, name.first), last: sealProfileField(master, v, "legal_last_name", userId, name.last) };
+  }, { create: true });
   const { sql } = await import("@/lib/neon");
-  const [r] = (await sql`select public.rout_kyc_store_legal_name(${Buffer.from(first)}, ${Buffer.from(last)}) as r`) as { r: string }[];
-  if (r?.r !== "ok") throw new Error(`legal_name_store_${r?.r ?? "failed"}`);
+  const rows = (await sql`update public.profiles
+      set legal_first_name = null, legal_last_name = null,
+          legal_first_name_sealed = ${Buffer.from(sealed.first)}, legal_last_name_sealed = ${Buffer.from(sealed.last)},
+          updated_at = now()
+    where id = ${userId}::uuid returning id`) as { id: string }[];
+  if (!rows[0]) throw new Error("legal_name_store_no_profile");
   return true;
 }
 

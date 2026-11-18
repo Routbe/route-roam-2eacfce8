@@ -100,9 +100,10 @@ function unpad(b: Uint8Array): Uint8Array {
 }
 
 /** Encrypts one field value for one profile. */
-export function sealProfileField(master: Uint8Array, version: number, field: PrivateProfileField, profileId: string, value: string): Uint8Array {
+export function sealProfileField(master: Uint8Array, version: number, field: PrivateProfileField, profileId: string, value: string | Uint8Array): Uint8Array {
   assertInputs(master, version, field, profileId);
-  const plain = enc.encode(value);
+  // Bytes are copied so the copy can be wiped here; the caller wipes its own buffer.
+  const plain = typeof value === "string" ? enc.encode(value) : value.slice();
   if (plain.length > MAX_PLAINTEXT) throw new FieldSealError();
   const key = derive(master, "aead", field, version);
   const padded = pad(plain);
