@@ -120,11 +120,8 @@ export function ProfileBadge({
         ? t("badges.businessExplanation")
         : type === "influencer"
           ? t("badges.creatorExplanation")
-          : method === "team"
-            ? t("badges.officialTeamVerified")
-            : method === "didit"
-              ? t("badges.officialDiditVerified")
-              : t("badges.officialMemberBody");
+          : // One validation sentence for every blue mark; the method line above says how it was earned.
+            t("badges.officialMemberBody");
 
   // Method line under the name: how this mark was earned.
   const methodLine =
