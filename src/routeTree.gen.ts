@@ -125,6 +125,7 @@ import { Route as CompareBitlyAlternativeRouteImport } from './routes/compare.bi
 import { Route as CompareLinktreeAlternativeRouteImport } from './routes/compare.linktree-alternative'
 import { Route as DevIndexRouteImport } from './routes/dev.index'
 import { Route as DevAiMcpRouteImport } from './routes/dev.ai-mcp'
+import { Route as DevBadgeCheckRouteImport } from './routes/dev.badge-check'
 import { Route as DevBlindHashMatchingRouteImport } from './routes/dev.blind-hash-matching'
 import { Route as DevCredentialsRouteImport } from './routes/dev.credentials'
 import { Route as DevCredentialsApiRouteImport } from './routes/dev.credentials-api'
@@ -1041,6 +1042,11 @@ const DevIndexRoute = DevIndexRouteImport.update({
 const DevAiMcpRoute = DevAiMcpRouteImport.update({
   id: '/ai-mcp',
   path: '/ai-mcp',
+  getParentRoute: () => DevRoute,
+} as any)
+const DevBadgeCheckRoute = DevBadgeCheckRouteImport.update({
+  id: '/badge-check',
+  path: '/badge-check',
   getParentRoute: () => DevRoute,
 } as any)
 const DevBlindHashMatchingRoute = DevBlindHashMatchingRouteImport.update({
@@ -2935,6 +2941,7 @@ export interface FileRoutesByFullPath {
   '/compare/bitly-alternative': typeof CompareBitlyAlternativeRoute
   '/compare/linktree-alternative': typeof CompareLinktreeAlternativeRoute
   '/dev/ai-mcp': typeof DevAiMcpRoute
+  '/dev/badge-check': typeof DevBadgeCheckRoute
   '/dev/blind-hash-matching': typeof DevBlindHashMatchingRoute
   '/dev/credentials': typeof DevCredentialsRoute
   '/dev/credentials-api': typeof DevCredentialsApiRoute
@@ -3370,6 +3377,7 @@ export interface FileRoutesByTo {
   '/compare/bitly-alternative': typeof CompareBitlyAlternativeRoute
   '/compare/linktree-alternative': typeof CompareLinktreeAlternativeRoute
   '/dev/ai-mcp': typeof DevAiMcpRoute
+  '/dev/badge-check': typeof DevBadgeCheckRoute
   '/dev/blind-hash-matching': typeof DevBlindHashMatchingRoute
   '/dev/credentials': typeof DevCredentialsRoute
   '/dev/credentials-api': typeof DevCredentialsApiRoute
@@ -3818,6 +3826,7 @@ export interface FileRoutesById {
   '/compare/bitly-alternative': typeof CompareBitlyAlternativeRoute
   '/compare/linktree-alternative': typeof CompareLinktreeAlternativeRoute
   '/dev/ai-mcp': typeof DevAiMcpRoute
+  '/dev/badge-check': typeof DevBadgeCheckRoute
   '/dev/blind-hash-matching': typeof DevBlindHashMatchingRoute
   '/dev/credentials': typeof DevCredentialsRoute
   '/dev/credentials-api': typeof DevCredentialsApiRoute
@@ -4269,6 +4278,7 @@ export interface FileRouteTypes {
     | '/compare/bitly-alternative'
     | '/compare/linktree-alternative'
     | '/dev/ai-mcp'
+    | '/dev/badge-check'
     | '/dev/blind-hash-matching'
     | '/dev/credentials'
     | '/dev/credentials-api'
@@ -4704,6 +4714,7 @@ export interface FileRouteTypes {
     | '/compare/bitly-alternative'
     | '/compare/linktree-alternative'
     | '/dev/ai-mcp'
+    | '/dev/badge-check'
     | '/dev/blind-hash-matching'
     | '/dev/credentials'
     | '/dev/credentials-api'
@@ -5151,6 +5162,7 @@ export interface FileRouteTypes {
     | '/compare/bitly-alternative'
     | '/compare/linktree-alternative'
     | '/dev/ai-mcp'
+    | '/dev/badge-check'
     | '/dev/blind-hash-matching'
     | '/dev/credentials'
     | '/dev/credentials-api'
@@ -6551,6 +6563,13 @@ declare module '@tanstack/react-router' {
       path: '/ai-mcp'
       fullPath: '/dev/ai-mcp'
       preLoaderRoute: typeof DevAiMcpRouteImport
+      parentRoute: typeof DevRoute
+    }
+    '/dev/badge-check': {
+      id: '/dev/badge-check'
+      path: '/badge-check'
+      fullPath: '/dev/badge-check'
+      preLoaderRoute: typeof DevBadgeCheckRouteImport
       parentRoute: typeof DevRoute
     }
     '/dev/blind-hash-matching': {
@@ -9177,6 +9196,7 @@ const CompareRouteWithChildren =
 
 interface DevRouteChildren {
   DevAiMcpRoute: typeof DevAiMcpRoute
+  DevBadgeCheckRoute: typeof DevBadgeCheckRoute
   DevBlindHashMatchingRoute: typeof DevBlindHashMatchingRoute
   DevCredentialsRoute: typeof DevCredentialsRoute
   DevCredentialsApiRoute: typeof DevCredentialsApiRoute
@@ -9194,6 +9214,7 @@ interface DevRouteChildren {
 
 const DevRouteChildren: DevRouteChildren = {
   DevAiMcpRoute: DevAiMcpRoute,
+  DevBadgeCheckRoute: DevBadgeCheckRoute,
   DevBlindHashMatchingRoute: DevBlindHashMatchingRoute,
   DevCredentialsRoute: DevCredentialsRoute,
   DevCredentialsApiRoute: DevCredentialsApiRoute,
