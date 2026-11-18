@@ -390,5 +390,8 @@
   "auth.age.saving": "Wird gespeichert…",
   "auth.age.saved": "Danke, dein Alter wurde gespeichert.",
   "auth.age.savedMinor": "Danke. Wir haben deinem Elternteil eine E-Mail für die Zustimmung geschickt.",
-  "auth.age.failed": "Das hat nicht geklappt. Bitte versuche es gleich noch einmal."
+  "auth.age.failed": "Das hat nicht geklappt. Bitte versuche es gleich noch einmal.",
+  "auth.provider.passkeyTile": "Passkey",
+  "auth.provider.signupHint": "Google-, GitHub- oder GitLab-Konto schon verknüpft? Direkt damit anmelden.",
+  "auth.signupDisabled": "Dieses Konto ist noch nicht mit ROUT verknüpft. Erstelle zuerst dein Konto mit einem Passkey und verknüpfe danach Google, GitHub oder GitLab in den Einstellungen."
 }

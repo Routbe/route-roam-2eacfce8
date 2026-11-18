@@ -141,7 +141,8 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
     }
     if (code && initialMode !== "reset") {
       const known = (AUTH_ERROR_CODES as readonly string[]).includes(code) ? code : "provider_rejected";
-      toast.error(known === "method_disabled" ? t("auth.pk.methodDisabled") : known === "link_expired" ? t("auth.mf.linkExpired") : t("auth.pk.failed"));
+      if (known === "signup_disabled") setMode("signup");
+      toast.error(known === "method_disabled" ? t("auth.pk.methodDisabled") : known === "link_expired" ? t("auth.mf.linkExpired") : known === "signup_disabled" ? t("auth.signupDisabled") : t("auth.pk.failed"));
     }
     if (redirect) void beginAuthIntent({ data: { next: redirect } }).catch(() => null);
     if (params.toString()) window.history.replaceState({}, "", window.location.pathname);
@@ -187,8 +188,11 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
   };
 
   // WebAuthn Conditional UI: saved passkeys appear in the browser's autofill.
+  // Runs on both tabs: tapping the e-mail field (autocomplete="username webauthn") offers saved
+  // passkeys from the OS sheet (Face ID / Touch ID / Android), also on "Account aanmaken".
+  const entryTab = mode === "signin" || mode === "signup";
   useEffect(() => {
-    if (!readiness?.ready || mode !== "signin" || step === "second") return;
+    if (!readiness?.ready || !entryTab || step === "second") return;
     let cancelled = false;
     const pkc = typeof window !== "undefined" ? window.PublicKeyCredential : undefined;
     if (!pkc?.isConditionalMediationAvailable) return;
@@ -207,7 +211,7 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [readiness?.ready, mode, step === "second"]);
+  }, [readiness?.ready, entryTab, step === "second"]);
 
   const failMessage = (error: { code?: string; message?: string; status?: number } | undefined, fallback: string) => {
     if (!error) return fallback;
@@ -544,7 +548,7 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
               {!smart && step === "choose" && (
                 <div className={adminPortal ? "space-y-3" : "flex flex-col gap-4 md:grid md:grid-cols-[1fr_auto_1fr] md:gap-8"}>
                   {!adminPortal && <>
-                    <div className="md:order-3"><PublicProviderSignIn configured={configuredProviders} readiness={readiness} disabled={loading} /></div>
+                    <div className="md:order-3"><PublicProviderSignIn configured={configuredProviders} readiness={readiness} disabled={loading} passkey={{ label: t("auth.provider.passkeyTile"), onSelect: () => void passkeyLogin() }} /></div>
                     <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-muted-foreground md:order-2 md:flex-col md:py-2" aria-hidden>
                       <span className="h-px flex-1 bg-border md:h-auto md:w-px" /> of <span className="h-px flex-1 bg-border md:h-auto md:w-px" />
                     </div>
@@ -612,6 +616,19 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
 
           {mode === "signup" && !adminPortal && (
             <form onSubmit={signUp} className="mx-auto max-w-md space-y-3.5">
+              <div className="space-y-2" data-testid="auth-signup-providers">
+                <PublicProviderSignIn
+                  configured={configuredProviders}
+                  readiness={readiness}
+                  disabled={loading}
+                  errorPath="/auth/sign-up"
+                  passkey={{ label: t("auth.provider.passkeyTile"), onSelect: () => document.getElementById("auth-email")?.focus() }}
+                />
+                <p className="text-center text-[11px] leading-relaxed text-muted-foreground">{t("auth.provider.signupHint")}</p>
+              </div>
+              <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-muted-foreground" aria-hidden>
+                <span className="h-px flex-1 bg-border" /> {t("auth.mf.orEmail")} <span className="h-px flex-1 bg-border" />
+              </div>
               {emailField}
               {signupFields}
               {linkButton("signin", t("auth.pk.haveAccount"), Fingerprint)}

@@ -6,7 +6,7 @@
 --   * rout_public_owner_is_minor(uuid): true when the best known age of that member is below 18,
 --     taken from the self-declared age floor (aged with the calendar) or the KYC age floor
 --     (verified_identity_nullifiers, 0290). Unknown age = false. Returns one boolean, never the age.
--- Held in db-pending/ until the owner's explicit GO for 0292; it runs after 0291.
+-- Applied on the owner's explicit GO for 0292 (2026-11-18); it runs after 0291. Rollback: db-pending/.
 
 create or replace function public.rout_public_owner_is_minor(p_user_id uuid)
  returns boolean

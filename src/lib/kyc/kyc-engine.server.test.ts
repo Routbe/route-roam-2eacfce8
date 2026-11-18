@@ -74,6 +74,16 @@ vi.mock("@/lib/identity/identity.server", () => ({
   },
 }));
 vi.mock("@/lib/schema-features.server", () => ({ hasSchemaFeature: async () => true }));
+/** Sealed-name writes: the buffers handed over, the member context, and an optional failure. */
+const vault = vi.hoisted(() => ({ calls: [] as { userId: string; ctx: string | null; first: Uint8Array; last: Uint8Array; plain: string }[], fail: false }));
+vi.mock("./legal-name-vault.server", () => ({
+  storeSealedLegalName: async (userId: string, name: { first: Uint8Array; last: Uint8Array }) => {
+    if (vault.fail) throw new Error("temporary");
+    const dec = new TextDecoder();
+    vault.calls.push({ userId, ctx: db.ctx, first: name.first, last: name.last, plain: `${dec.decode(name.first)} ${dec.decode(name.last)}` });
+    return true;
+  },
+}));
 vi.mock("./canonical-id", async (importOriginal) => {
   const real = await importOriginal<typeof import("./canonical-id")>();
   return {
@@ -139,6 +149,8 @@ beforeEach(() => {
   db.bump = true;
   db.verified = false;
   didit.fail = false;
+  vault.calls = [];
+  vault.fail = false;
   logs = [];
   for (const m of ["log", "info", "warn", "error"] as const) vi.spyOn(console, m).mockImplementation((...a: unknown[]) => { logs.push(a.map(String).join(" ")); });
 });
@@ -279,5 +291,44 @@ describe("Didit webhook", () => {
   it("is not configured without the webhook secret", async () => {
     delete process.env["DIDIT_WEBHOOK_SECRET"];
     expect((await handleDiditWebhook(signed(event("x")))).status).toBe(503);
+  });
+
+  it("seals the document name for the member right after attestation and zero-fills the name buffers", async () => {
+    const ref = sealVendorRef(USER, STATE, PEPPER);
+    didit.decision = decisionFor(ref);
+    expect(await (await handleDiditWebhook(signed(event(ref)))).json()).toEqual({ ok: true, result: "verified" });
+    expect(vault.calls).toHaveLength(1);
+    const c = vault.calls[0]!;
+    expect(c.userId).toBe(USER);
+    expect(c.ctx).toBe(USER);
+    expect(c.plain).toBe("Carmen Española");
+    for (const b of [c.first, c.last]) {
+      expect(Buffer.isBuffer(b)).toBe(true);
+      expect(b.every((x) => x === 0)).toBe(true);
+    }
+    expect(JSON.stringify(db.calls)).not.toContain("Carmen");
+  });
+
+  it("reads the ICAO given_names / family_name of a chip read", async () => {
+    const ref = sealVendorRef(USER, STATE, PEPPER);
+    const d = decisionFor(ref);
+    const { first_name: _f, last_name: _l, ...doc } = d.id_verifications[0]!;
+    didit.decision = { ...d, id_verifications: [], nfc_verifications: [{ ...doc, given_names: "Jona", family_name: "Delplanche" }] };
+    expect(await (await handleDiditWebhook(signed(event(ref)))).json()).toEqual({ ok: true, result: "verified" });
+    expect(vault.calls[0]?.plain).toBe("Jona Delplanche");
+  });
+
+  it("a failed seal answers 503 and the redelivery stores the name before closing the session", async () => {
+    const ref = sealVendorRef(USER, STATE, PEPPER);
+    didit.decision = decisionFor(ref);
+    vault.fail = true;
+    expect((await handleDiditWebhook(signed(event(ref)))).status).toBe(503);
+    expect(db.sessions.has(STATE)).toBe(true);
+    vault.fail = false;
+    const retry = (await (await handleDiditWebhook(signed(event(ref)))).json()) as { ok: boolean; result: string };
+    expect(retry.ok).toBe(true);
+    expect(["verified", "already_verified"]).toContain(retry.result);
+    expect(vault.calls).toHaveLength(1);
+    expect(db.sessions.has(STATE)).toBe(false);
   });
 });

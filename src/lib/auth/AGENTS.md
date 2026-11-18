@@ -3,3 +3,6 @@
 
 ## Sudo Mode
 - Sensitive mutations (merge, vault, key/secret rotation) use requireSudo(label): a signed __Host-sudo_session minted only from a general passkey step-up proof, bound to member and sign-in session, valid exactly 300 s from the passkey verification (src/lib/auth/sudo-rules.ts); database-clock passkey proofs stay in addition. Why: one passkey tap covers a short burst of actions without ever trusting a stretched or transplanted window.
+
+## Social grid on both auth tabs
+- The sign-up tab shows the same provider/passkey grid as sign-in, but providers keep disableSignUp: a social button only signs in an already linked account, and a new address returns `signup_disabled` to /auth/sign-up with a "create with passkey first" message. Why: account creation stays passkey/OPAQUE-only.
