@@ -26,6 +26,11 @@ export async function storeSealedLegalName(userId: string, name: { first: Uint8A
   const { hasSchemaFeature } = await import("@/lib/schema-features.server");
   if (!(await hasSchemaFeature("0287"))) return false;
   if (!name.first.length || !name.last.length) return false;
+  if (!process.env["ROUT_VAULT_KEK"]) {
+    // Not configured: the verification itself must not fail over it; the card then shows no name.
+    console.warn("[kyc] legal name not sealed: ROUT_VAULT_KEK missing");
+    return false;
+  }
   const { withProfileFieldKeys } = await import("@/lib/profile-private/field-keys.server");
   const { sealProfileField } = await import("@/lib/profile-private/field-seal");
   const sealed = await withProfileFieldKeys((ring) => {
