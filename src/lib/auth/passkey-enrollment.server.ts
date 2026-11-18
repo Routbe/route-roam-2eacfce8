@@ -14,6 +14,9 @@ type RegistrationUser = { id: string; name: string; displayName?: string };
 type InternalAdapter = {
   createUser: (user: { email: string; name: string; emailVerified: boolean }) => Promise<{ id: string } | null>;
   findUserByEmail: (email: string) => Promise<{ user: { id: string } } | null>;
+  /** Needed only for social onboarding tickets. */
+  findAccountByKey?: (key: { providerId: string; accountId: string }) => Promise<unknown | null>;
+  linkAccount?: (account: { userId: string; providerId: string; accountId: string }) => Promise<unknown>;
 };
 
 const reject = (msg: string) => Object.assign(new Error(msg), { status: 400 });
@@ -44,12 +47,22 @@ export async function finalizeEnrollment(
     const t = await verifySignupTicket(secret, context, Math.floor(Date.now() / 1000));
     if (!t) throw reject("signup_ticket_invalid");
     if (await adapter.findUserByEmail(t.email)) throw reject("account_exists");
+    const social = t.social;
+    if (social) {
+      if (!adapter.findAccountByKey || !adapter.linkAccount) throw reject("account_create_failed");
+      if (await adapter.findAccountByKey({ providerId: social.provider, accountId: social.accountId })) throw reject("account_exists");
+    }
     const { runPasskeyAccountCreation } = await import("./account-creation-scope");
     // The only place a new account may be created: after a verified passkey ceremony.
+    // A social ticket's address was verified by the provider; every other one is not yet.
     const user = await runPasskeyAccountCreation(() =>
-      adapter.createUser({ email: t.email, name: t.name || t.email.split("@")[0] || t.email, emailVerified: false }),
+      adapter.createUser({ email: t.email, name: t.name || t.email.split("@")[0] || t.email, emailVerified: Boolean(social) }),
     );
     if (!user?.id) throw reject("account_create_failed");
+    if (social) {
+      // Same transaction as the passkey row: the provider is linked only to an account that has one.
+      await adapter.linkAccount!({ userId: user.id, providerId: social.provider, accountId: social.accountId });
+    }
     try {
       const { recordSignupAge } = await import("@/lib/minor-safety.server");
       await recordSignupAge(t.email, t.ageFloor, t.parentEmail);
