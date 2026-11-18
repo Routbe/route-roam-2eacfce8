@@ -171,6 +171,8 @@ export interface EnclaveOps {
   };
 
   "hash.sha256Hex": { req: { text: string }; res: string };
+  /** Blue-mark card: Ed25519 check of ROUT's attestation (badge-attestation.ts) against the published key. */
+  "badge.verify": { req: { message: Uint8Array; signature: Uint8Array; publicKey: Uint8Array }; res: { valid: boolean } };
 
   // ---- Password engine (Stap 3): Hashcash, paranoid input, OPAQUE + Argon2id ----
 
