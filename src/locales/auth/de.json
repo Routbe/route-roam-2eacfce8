@@ -393,5 +393,16 @@
   "auth.age.failed": "Das hat nicht geklappt. Bitte versuche es gleich noch einmal.",
   "auth.provider.passkeyTile": "Passkey",
   "auth.provider.signupHint": "Google-, GitHub- oder GitLab-Konto schon verknüpft? Direkt damit anmelden.",
-  "auth.signupDisabled": "Dieses Konto ist noch nicht mit ROUT verknüpft. Erstelle zuerst dein Konto mit einem Passkey und verknüpfe danach Google, GitHub oder GitLab in den Einstellungen."
+  "auth.signupDisabled": "Dieses Konto ist noch nicht mit ROUT verknüpft. Erstelle zuerst dein Konto mit einem Passkey und verknüpfe danach Google, GitHub oder GitLab in den Einstellungen.",
+  "auth.onboard.step": "Schritt {{n}} von 2",
+  "auth.onboard.title": "Willkommen über {{provider}}",
+  "auth.onboard.body": "Du erstellst ein ROUT-Konto für {{email}}. Zuerst dein Alter, dann dein Passkey.",
+  "auth.onboard.next": "Weiter: Passkey",
+  "auth.onboard.passkeyTitle": "Sichere dein Konto mit einem Passkey",
+  "auth.onboard.passkeyBody": "Jedes ROUT-Konto hat einen Passkey. Bestätige mit Face ID, Touch ID, Windows Hello oder einem Sicherheitsschlüssel.",
+  "auth.onboard.passkeyCta": "Passkey erstellen",
+  "auth.onboard.passkeyNote": "Erst nach diesem Schritt gibt es dein Konto und du bist angemeldet. Danach kannst du dich auch mit {{provider}} anmelden.",
+  "auth.onboard.passkeyFailed": "Der Passkey wurde nicht erstellt. Bitte versuche es erneut.",
+  "auth.onboard.cancel": "Abbrechen",
+  "auth.onboard.expired": "Diese Anmeldung ist abgelaufen. Wähle dein Konto erneut."
 }

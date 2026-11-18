@@ -393,5 +393,16 @@
   "auth.age.failed": "Dat lukte niet. Probeer het zo opnieuw.",
   "auth.provider.passkeyTile": "Passkey",
   "auth.provider.signupHint": "Al een Google-, GitHub- of GitLab-account gekoppeld? Log er meteen mee in.",
-  "auth.signupDisabled": "Dit account is nog niet aan ROUT gekoppeld. Maak eerst je account aan met een passkey; daarna koppel je Google, GitHub of GitLab in je instellingen."
+  "auth.signupDisabled": "Dit account is nog niet aan ROUT gekoppeld. Maak eerst je account aan met een passkey; daarna koppel je Google, GitHub of GitLab in je instellingen.",
+  "auth.onboard.step": "Stap {{n}} van 2",
+  "auth.onboard.title": "Welkom via {{provider}}",
+  "auth.onboard.body": "Je maakt een ROUT-account aan voor {{email}}. Eerst je leeftijd, daarna je passkey.",
+  "auth.onboard.next": "Volgende: passkey",
+  "auth.onboard.passkeyTitle": "Beveilig je account met een passkey",
+  "auth.onboard.passkeyBody": "Elk ROUT-account heeft een passkey. Bevestig met Face ID, Touch ID, Windows Hello of een beveiligingssleutel.",
+  "auth.onboard.passkeyCta": "Passkey aanmaken",
+  "auth.onboard.passkeyNote": "Pas na deze stap bestaat je account en ben je ingelogd. Daarna kun je ook met {{provider}} inloggen.",
+  "auth.onboard.passkeyFailed": "De passkey is niet aangemaakt. Probeer het opnieuw.",
+  "auth.onboard.cancel": "Annuleren",
+  "auth.onboard.expired": "Deze aanmelding is verlopen. Kies opnieuw je account."
 }

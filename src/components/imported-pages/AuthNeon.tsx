@@ -27,6 +27,7 @@ import { isMinorDob, signupAgeProblem } from "@/lib/minor-safety";
 import { redeemLoginCodeFn } from "@/lib/login-code.functions";
 import { SecondFactorStep } from "@/components/auth/SecondFactorStep";
 import { PublicProviderSignIn } from "@/components/auth/PublicProviderSignIn";
+import { SocialOnboardingDialog } from "@/components/auth/SocialOnboardingDialog";
 
 /** Deliberately permissive: catches typos, never rejects a valid address. */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

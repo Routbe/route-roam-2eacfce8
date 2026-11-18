@@ -279,6 +279,7 @@ import { Route as ApiAgentWorkspacesRouteImport } from './routes/api_.agent.work
 import { Route as ApiAiRewriteRouteImport } from './routes/api_.ai.rewrite'
 import { Route as ApiAuthPasskeyRecoveryRouteImport } from './routes/api_.auth-passkey.recovery'
 import { Route as ApiAuthPasskeySignupRouteImport } from './routes/api_.auth-passkey.signup'
+import { Route as ApiAuthPasskeySocialRouteImport } from './routes/api_.auth-passkey.social'
 import { Route as ApiAuthSplatRouteImport } from './routes/api_.auth.$'
 import { Route as ApiBadgeKeyRouteImport } from './routes/api_.badge.key'
 import { Route as ApiBadgeVerifyRouteImport } from './routes/api_.badge.verify'
@@ -1849,6 +1850,11 @@ const ApiAuthPasskeySignupRoute = ApiAuthPasskeySignupRouteImport.update({
   path: '/api/auth-passkey/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthPasskeySocialRoute = ApiAuthPasskeySocialRouteImport.update({
+  id: '/api_/auth-passkey/social',
+  path: '/api/auth-passkey/social',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api_/auth/$',
   path: '/api/auth/$',
@@ -3089,6 +3095,7 @@ export interface FileRoutesByFullPath {
   '/api/ai/rewrite': typeof ApiAiRewriteRoute
   '/api/auth-passkey/recovery': typeof ApiAuthPasskeyRecoveryRoute
   '/api/auth-passkey/signup': typeof ApiAuthPasskeySignupRoute
+  '/api/auth-passkey/social': typeof ApiAuthPasskeySocialRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/badge/key': typeof ApiBadgeKeyRoute
   '/api/badge/verify': typeof ApiBadgeVerifyRoute
@@ -3522,6 +3529,7 @@ export interface FileRoutesByTo {
   '/api/ai/rewrite': typeof ApiAiRewriteRoute
   '/api/auth-passkey/recovery': typeof ApiAuthPasskeyRecoveryRoute
   '/api/auth-passkey/signup': typeof ApiAuthPasskeySignupRoute
+  '/api/auth-passkey/social': typeof ApiAuthPasskeySocialRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/badge/key': typeof ApiBadgeKeyRoute
   '/api/badge/verify': typeof ApiBadgeVerifyRoute
@@ -3972,6 +3980,7 @@ export interface FileRoutesById {
   '/api_/ai/rewrite': typeof ApiAiRewriteRoute
   '/api_/auth-passkey/recovery': typeof ApiAuthPasskeyRecoveryRoute
   '/api_/auth-passkey/signup': typeof ApiAuthPasskeySignupRoute
+  '/api_/auth-passkey/social': typeof ApiAuthPasskeySocialRoute
   '/api_/auth/$': typeof ApiAuthSplatRoute
   '/api_/badge/key': typeof ApiBadgeKeyRoute
   '/api_/badge/verify': typeof ApiBadgeVerifyRoute
@@ -4423,6 +4432,7 @@ export interface FileRouteTypes {
     | '/api/ai/rewrite'
     | '/api/auth-passkey/recovery'
     | '/api/auth-passkey/signup'
+    | '/api/auth-passkey/social'
     | '/api/auth/$'
     | '/api/badge/key'
     | '/api/badge/verify'
@@ -4856,6 +4866,7 @@ export interface FileRouteTypes {
     | '/api/ai/rewrite'
     | '/api/auth-passkey/recovery'
     | '/api/auth-passkey/signup'
+    | '/api/auth-passkey/social'
     | '/api/auth/$'
     | '/api/badge/key'
     | '/api/badge/verify'
@@ -5305,6 +5316,7 @@ export interface FileRouteTypes {
     | '/api_/ai/rewrite'
     | '/api_/auth-passkey/recovery'
     | '/api_/auth-passkey/signup'
+    | '/api_/auth-passkey/social'
     | '/api_/auth/$'
     | '/api_/badge/key'
     | '/api_/badge/verify'
@@ -5615,6 +5627,7 @@ export interface RootRouteChildren {
   ApiAiRewriteRoute: typeof ApiAiRewriteRoute
   ApiAuthPasskeyRecoveryRoute: typeof ApiAuthPasskeyRecoveryRoute
   ApiAuthPasskeySignupRoute: typeof ApiAuthPasskeySignupRoute
+  ApiAuthPasskeySocialRoute: typeof ApiAuthPasskeySocialRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiBadgeKeyRoute: typeof ApiBadgeKeyRoute
   ApiBadgeVerifyRoute: typeof ApiBadgeVerifyRoute
@@ -7631,6 +7644,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthPasskeySignupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api_/auth-passkey/social': {
+      id: '/api_/auth-passkey/social'
+      path: '/api/auth-passkey/social'
+      fullPath: '/api/auth-passkey/social'
+      preLoaderRoute: typeof ApiAuthPasskeySocialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api_/auth/$': {
       id: '/api_/auth/$'
       path: '/api/auth/$'
@@ -9632,6 +9652,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAiRewriteRoute: ApiAiRewriteRoute,
   ApiAuthPasskeyRecoveryRoute: ApiAuthPasskeyRecoveryRoute,
   ApiAuthPasskeySignupRoute: ApiAuthPasskeySignupRoute,
+  ApiAuthPasskeySocialRoute: ApiAuthPasskeySocialRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiBadgeKeyRoute: ApiBadgeKeyRoute,
   ApiBadgeVerifyRoute: ApiBadgeVerifyRoute,

@@ -393,5 +393,16 @@
   "auth.age.failed": "That didn't work. Please try again in a moment.",
   "auth.provider.passkeyTile": "Passkey",
   "auth.provider.signupHint": "Already linked a Google, GitHub or GitLab account? Sign in with it right away.",
-  "auth.signupDisabled": "This account is not linked to ROUT yet. Create your account with a passkey first, then link Google, GitHub or GitLab in your settings."
+  "auth.signupDisabled": "This account is not linked to ROUT yet. Create your account with a passkey first, then link Google, GitHub or GitLab in your settings.",
+  "auth.onboard.step": "Step {{n}} of 2",
+  "auth.onboard.title": "Welcome via {{provider}}",
+  "auth.onboard.body": "You're creating a ROUT account for {{email}}. Your age first, then your passkey.",
+  "auth.onboard.next": "Next: passkey",
+  "auth.onboard.passkeyTitle": "Secure your account with a passkey",
+  "auth.onboard.passkeyBody": "Every ROUT account has a passkey. Confirm with Face ID, Touch ID, Windows Hello or a security key.",
+  "auth.onboard.passkeyCta": "Create passkey",
+  "auth.onboard.passkeyNote": "Your account exists and you're signed in only after this step. After that you can also sign in with {{provider}}.",
+  "auth.onboard.passkeyFailed": "The passkey was not created. Please try again.",
+  "auth.onboard.cancel": "Cancel",
+  "auth.onboard.expired": "This sign-up has expired. Choose your account again."
 }
