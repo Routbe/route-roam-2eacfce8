@@ -2210,5 +2210,7 @@
   "badges.zkNoData": "Kein Name und keine Dokumentdaten geteilt.",
   "badges.linkedCardTitle": "Mit einem verifizierten Hauptkonto verknüpft",
   "badges.methodLinked": "Echter Mensch mit verifiziertem Hauptprofil",
-  "badges.linkedAnonymous": "Anonymität garantiert: Es wird kein Name angezeigt."
+  "badges.linkedAnonymous": "Anonymität garantiert: Es wird kein Name angezeigt.",
+  "studio.tipPreview.verifiedOnly": "Die Unterstützungsseite gibt es nur auf deinem verifizierten Hauptprofil.",
+  "studio.tipPreview.notLive": "Deine Unterstützungsseite ist noch nicht online. Gib eine gültige IBAN und den Kontoinhaber ein und schalte die Seite ein."
 }

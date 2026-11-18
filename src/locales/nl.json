@@ -2210,5 +2210,7 @@
   "badges.zkNoData": "Geen naam of documentgegevens gedeeld.",
   "badges.linkedCardTitle": "Gekoppeld aan geverifieerd hoofdaccount",
   "badges.methodLinked": "Echt mens met geverifieerd hoofdprofiel",
-  "badges.linkedAnonymous": "Anonimiteit gegarandeerd: er wordt geen naam getoond."
+  "badges.linkedAnonymous": "Anonimiteit gegarandeerd: er wordt geen naam getoond.",
+  "studio.tipPreview.verifiedOnly": "De steunpagina bestaat alleen op je geverifieerde hoofdprofiel.",
+  "studio.tipPreview.notLive": "Je steunpagina staat nog niet live. Vul een geldig IBAN en de naam van de rekeninghouder in en zet de pagina aan."
 }
