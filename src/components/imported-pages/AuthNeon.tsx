@@ -136,6 +136,10 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
       setRecoveryToken(token);
       setMode("recovery");
     }
+    if (params.get("onboard") === "social" && !adminPortal) {
+      setMode("signup");
+      setSocialOnboard(true);
+    }
     if (params.get("second_factor") === "1") {
       setMode("signin");
       setStep("second");
@@ -165,10 +169,8 @@ export default function AuthNeon({ initialMode = "signin", initialProviders = nu
   /** Session cookie is set server-side: one full load to /auth/continue, which re-checks it and 303s. */
   // `/auth/sign-up?onboard=social`: a new Google/GitHub/GitLab member waits in
   // pending_passkey_setup; read after hydration so the server frame stays the same.
+  // Set by the address read below, before that effect tidies the query string away.
   const [socialOnboard, setSocialOnboard] = useState(false);
-  useEffect(() => {
-    if (!adminPortal && new URLSearchParams(window.location.search).get("onboard") === "social") setSocialOnboard(true);
-  }, [adminPortal]);
 
   const goToPostAuth = () => {
     redirected.current = true;
