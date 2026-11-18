@@ -35266,6 +35266,12 @@
     },
     {
       "schema": "public",
+      "name": "rout_public_owner_is_minor",
+      "args": "p_user_id uuid",
+      "def": "CREATE OR REPLACE FUNCTION public.rout_public_owner_is_minor(p_user_id uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'pg_temp'\nAS $function$\n  select coalesce(s.g < 18, false)\n    from (select greatest(\n      (select u.age_floor + pg_catalog.date_part('year',\n                pg_catalog.age(current_date::timestamp, u.age_floor_at::timestamp))::integer\n         from public.users u where u.id = p_user_id),\n      (select pg_catalog.max(n.age_floor)::integer from public.verified_identity_nullifiers n\n        where n.user_id = p_user_id)) as g) s\n$function$"
+    },
+    {
+      "schema": "public",
       "name": "rout_public_social_links",
       "args": "p_profile uuid",
       "def": "CREATE OR REPLACE FUNCTION public.rout_public_social_links(p_profile uuid)\n RETURNS TABLE(platform text, username text, follower_count integer, checked_at timestamp with time zone)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'pg_temp'\nAS $function$\n  select s.platform, s.username, s.follower_count, coalesce(s.last_synced_at, s.verified_at)\n    from public.social_links s\n   where s.profile_id = p_profile and s.is_verified = true\n   order by s.position, s.created_at\n   limit 50\n$function$"
